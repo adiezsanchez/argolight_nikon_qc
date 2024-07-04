@@ -1,22 +1,31 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from skimage.measure import label, regionprops, regionprops_table
+from skimage.measure import label, regionprops_table
 
-def plots_results_on_image(input_image, labels_image, results_array, title):
-    """Plots results array on top of each label"""
+def plots_results_on_image(input_image, labels_image, results_array, title, results_folder):
+    """Plots results array on top of each label and saves the plot as a PNG file in the specified results folder."""
+    # Set up the figure
     plt.figure(figsize=(10, 10))
     plt.imshow(input_image, cmap='viridis')
     
+    # Plot the results on the image
     for label in range(1, np.max(labels_image) + 1):
         positions = np.column_stack(np.where(labels_image == label))
         if len(positions) > 0:
             # Choose the first position found for each label to display the percentage
             y, x = positions[0]
             plt.text(x, y - 25, f'{results_array[label - 1]:.2f}', color='white', fontsize=8, ha='center')
-
+    
+    # Set the title and remove the axis
     plt.title(title)
     plt.axis('off')
+    
+    # Save the plot as a PNG file
+    save_path = results_folder / f"{title}.png"
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.show()
+    print(f"Plot saved as {save_path}")
+
 
 def extract_labels(img, threshold_ch0, threshold_ch1):
 
@@ -70,3 +79,17 @@ def calculate_props(label_image, intensity_image):
     results_array = regionprops_table(label_image ,intensity_image, properties=['label','area_filled','area','intensity_mean'])
 
     return results_array
+
+def save_bar_graph(df, column, title, results_folder):
+    """Creates and saves a bar graph using Matplotlib."""
+    plt.figure(figsize=(10, 6))
+    plt.bar(df['label'], df[column], color='skyblue')
+    plt.xlabel('Label')
+    plt.ylabel('Intensity Mean')
+    plt.title(title)
+    
+    # Save the plot as a PNG file
+    save_path = results_folder / f"{title}.png"
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()  # Close the figure to free memory
+    print(f"Plot saved as {save_path}")
